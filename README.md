@@ -28,3 +28,5 @@ REFERENCES
 
 * falsetru (StackOverflow)
 https://stackoverflow.com/a/21153368/16789333
+
+* MDN Web Docs https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types

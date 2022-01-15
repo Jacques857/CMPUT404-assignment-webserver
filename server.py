@@ -30,12 +30,55 @@ import socketserver
 class MyWebServer(socketserver.BaseRequestHandler):
     
     def handle(self):
+        # Get the request data
         self.data = self.request.recv(1024).strip()
-        print ("Got a request of: %s\n" % self.data)
-        self.request.send(bytes('HTTP/1.0 200 OK\n', 'utf-8'))
+        dataString = self.data.decode('utf-8')
+        print ("Got a request of: %s\n" % dataString)
+
+        # Check the request method
+        if ("GET" not in dataString):
+            self.__send_status("405 Method Not Allowed")
+            return
+        
+        # Check the path
+        path = self.__get_path(dataString)
+        print("Path: ", path, "\n")
+        #if (not path.endswith("/")):
+            #self.__send_status("301 Moved Permanently")
+            #self.request.send('Location: /')
+            #return
+
+        # Route the request
+        if (path == "/" or path == "/index.html"):
+            self.__send_status("200 OK")
+            self.__send_html_content("www/index.html")
+        elif (path == "/base.css"):
+            self.__send_status("200 OK")
+            self.__send_css_content("www/base.css")
+        else:
+            self.__send_status("404 Not Found")
+
+    # Sends html content at the specified path
+    def __send_html_content(self, path):
         self.request.send(bytes('Content-Type: text/html\n', 'utf-8'))
-        page = open("www/index.html", 'r')
+        page = open(path, 'r')
         self.request.send(bytes(page.read(),'utf-8'))
+
+    # Sends css content at the specified path
+    def __send_css_content(self, path):
+        self.request.send(bytes('Content-Type: text/css\n', 'utf-8'))
+        page = open(path, 'r')
+        self.request.send(bytes(page.read(),'utf-8'))
+
+    # Send the status code
+    def __send_status(self, statusCode):
+        self.request.send(bytes('HTTP/1.1 ' + statusCode + '\n', 'utf-8'))
+
+    # Gets the path given a string of the received data
+    def __get_path(self, dataString):
+        startIndex = dataString.index(" ") + 1
+        endIndex = dataString.index("HTTP/1.1\r") - 1
+        return dataString[startIndex:endIndex]
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
