@@ -1,5 +1,6 @@
 #  coding: utf-8 
 import socketserver
+import os.path
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
@@ -42,26 +43,63 @@ class MyWebServer(socketserver.BaseRequestHandler):
         
         # Check the path
         path = self.__get_path(dataString)
-        print("Path: ", path, "\n")
-        #if (not path.endswith("/")):
-            #self.__send_status("301 Moved Permanently")
-            #self.request.send('Location: /')
-            #return
+        base_dir = os.path.dirname("www/")
+        print("Basedir: ", base_dir)
+        print("Joined: ", base_dir + path)
+        print(os.path.exists(base_dir + path))
+        print(os.path.exists("www/deep/index.html"))
+        """if ((not path.endswith("/"))):
+            self.__send_status("301 Moved Permanently")
+            self.request.send('Location: /')
+            return"""
 
         # Route the request
-        if (path == "/" or path == "/index.html"):
+        self.__handle_get(base_dir + path)
+        """if (path == "/" or path == "/index.html"):
             self.__send_status("200 OK")
             self.__send_html_content("www/index.html")
         elif (path == "/base.css"):
             self.__send_status("200 OK")
             self.__send_css_content("www/base.css")
         else:
+            self.__send_status("404 Not Found")"""
+
+    # Handles GET requests
+    def __handle_get(self, path):
+        if not os.path.exists(path):
             self.__send_status("404 Not Found")
+            return
+        (dirname, filename) = os.path.split(path)
+        print("filename:", filename)
+        if (path.endswith("/")):
+            self.__send_status("200 OK")
+            print("Printing", os.path.join(path, "/index.html"))
+            self.__send_html_content(os.path.join(path, "index.html"))
+        elif (os.path.splitext(filename)[1] == ".html"):
+            self.__send_status("200 OK")
+            self.__send_html_content(path)
+        elif (os.path.splitext(filename)[1] == ".css"):
+            self.__send_status("200 OK")
+            self.__send_css_content(path)
+        else:
+            self.__send_status("301 Moved Permanently")
+            self.request.send('Location: /')
+
+    # Returns 1 if the path is valid, 0 otherwise
+    def __check_path(self, dirname, filename):
+        try:
+            open(os.path.join("www", dirname, filename))
+            return 1
+        except:
+            try:
+                open(os.path.join("www", dirname, "index.html"))
+            except:
+                return 0
 
     # Sends html content at the specified path
     def __send_html_content(self, path):
-        self.request.send(bytes('Content-Type: text/html\n', 'utf-8'))
         page = open(path, 'r')
+        self.request.send(bytes('Content-Type: text/html\n', 'utf-8'))
         self.request.send(bytes(page.read(),'utf-8'))
 
     # Sends css content at the specified path
