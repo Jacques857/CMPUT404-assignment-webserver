@@ -44,36 +44,24 @@ class MyWebServer(socketserver.BaseRequestHandler):
         # Check the path
         path = self.__get_path(dataString)
         base_dir = os.path.dirname("www/")
-        print("Basedir: ", base_dir)
-        print("Joined: ", base_dir + path)
-        print(os.path.exists(base_dir + path))
-        print(os.path.exists("www/deep/index.html"))
-        """if ((not path.endswith("/"))):
-            self.__send_status("301 Moved Permanently")
-            self.request.send('Location: /')
-            return"""
+        print("addition", base_dir + path)
 
         # Route the request
         self.__handle_get(base_dir + path)
-        """if (path == "/" or path == "/index.html"):
-            self.__send_status("200 OK")
-            self.__send_html_content("www/index.html")
-        elif (path == "/base.css"):
-            self.__send_status("200 OK")
-            self.__send_css_content("www/base.css")
-        else:
-            self.__send_status("404 Not Found")"""
 
     # Handles GET requests
     def __handle_get(self, path):
+        print("path:", path)
         if not os.path.exists(path):
-            self.__send_status("404 Not Found")
-            return
+            print("Path: " + path + '/, exists: ' + str(os.path.exists(path + '/')))
+            if not os.path.exists(path + '/'):
+                self.__send_status("404 Not Found")
+                return
+            else:
+                path = path + '/'
         (dirname, filename) = os.path.split(path)
-        print("filename:", filename)
         if (path.endswith("/")):
             self.__send_status("200 OK")
-            print("Printing", os.path.join(path, "/index.html"))
             self.__send_html_content(os.path.join(path, "index.html"))
         elif (os.path.splitext(filename)[1] == ".html"):
             self.__send_status("200 OK")
@@ -83,7 +71,8 @@ class MyWebServer(socketserver.BaseRequestHandler):
             self.__send_css_content(path)
         else:
             self.__send_status("301 Moved Permanently")
-            self.request.send('Location: /')
+            path = path.replace("www/", "")
+            self.request.sendall(bytearray('Location: http://' + HOST + ":" + str(PORT) + "/" + path + '/\r\n\r\n', 'utf-8'))
 
     # Returns 1 if the path is valid, 0 otherwise
     def __check_path(self, dirname, filename):
@@ -99,27 +88,28 @@ class MyWebServer(socketserver.BaseRequestHandler):
     # Sends html content at the specified path
     def __send_html_content(self, path):
         page = open(path, 'r')
-        self.request.send(bytes('Content-Type: text/html\n', 'utf-8'))
-        self.request.send(bytes(page.read(),'utf-8'))
+        self.request.sendall(bytearray('Content-Type: text/html\r\n\r\n', 'utf-8'))
+        self.request.sendall(bytearray(page.read(),'utf-8'))
 
     # Sends css content at the specified path
     def __send_css_content(self, path):
-        self.request.send(bytes('Content-Type: text/css\n', 'utf-8'))
         page = open(path, 'r')
-        self.request.send(bytes(page.read(),'utf-8'))
+        self.request.sendall(bytearray('Content-Type: text/css\r\n\r\n', 'utf-8'))
+        self.request.sendall(bytearray(page.read(),'utf-8'))
 
     # Send the status code
     def __send_status(self, statusCode):
-        self.request.send(bytes('HTTP/1.1 ' + statusCode + '\n', 'utf-8'))
+        self.request.sendall(bytearray('HTTP/1.1 ' + statusCode + '\r\n', 'utf-8'))
 
     # Gets the path given a string of the received data
     def __get_path(self, dataString):
         startIndex = dataString.index(" ") + 1
-        endIndex = dataString.index("HTTP/1.1\r") - 1
+        endIndex = dataString.index("HTTP/1.1") - 1
+        print("DATASTRING:", dataString, "GETPATHRESULT:", dataString[startIndex:endIndex])
         return dataString[startIndex:endIndex]
 
 if __name__ == "__main__":
-    HOST, PORT = "localhost", 8080
+    HOST, PORT = "127.0.0.1", 8080
 
     socketserver.TCPServer.allow_reuse_address = True
     # Create the server, binding to localhost on port 8080
