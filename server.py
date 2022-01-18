@@ -34,7 +34,6 @@ class MyWebServer(socketserver.BaseRequestHandler):
         # Get the request data
         self.data = self.request.recv(1024).strip()
         dataString = self.data.decode('utf-8')
-        print ("Got a request of: %s\n" % dataString)
 
         # Check the request method
         if ("GET" not in dataString):
