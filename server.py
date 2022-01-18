@@ -44,16 +44,13 @@ class MyWebServer(socketserver.BaseRequestHandler):
         # Check the path
         path = self.__get_path(dataString)
         base_dir = os.path.dirname("www/")
-        print("addition", base_dir + path)
 
         # Route the request
         self.__handle_get(base_dir + path)
 
     # Handles GET requests
     def __handle_get(self, path):
-        print("path:", path)
         if not os.path.exists(path):
-            print("Path: " + path + '/, exists: ' + str(os.path.exists(path + '/')))
             if not os.path.exists(path + '/'):
                 self.__send_status("404 Not Found")
                 return
@@ -105,7 +102,6 @@ class MyWebServer(socketserver.BaseRequestHandler):
     def __get_path(self, dataString):
         startIndex = dataString.index(" ") + 1
         endIndex = dataString.index("HTTP/1.1") - 1
-        print("DATASTRING:", dataString, "GETPATHRESULT:", dataString[startIndex:endIndex])
         return dataString[startIndex:endIndex]
 
 if __name__ == "__main__":
