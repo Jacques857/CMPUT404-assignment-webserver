@@ -14,11 +14,11 @@ Generally everything is LICENSE'D under the Apache 2 license by Abram Hindle.
 
 server.py contains contributions from:
 
+* Jacques Leong-Sit
 * Abram Hindle
 * Eddie Antonio Santos
 * Jackson Z Chang
 * Mandy Meindersma
-* Jacques Leong-Sit
 
 But the server.py example is derived from the python documentation
 examples thus some of the code is Copyright © 2001-2013 Python
