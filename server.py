@@ -2,6 +2,7 @@
 import socketserver
 import os.path
 
+# Copyright 2022 Jacques Leong-Sit
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
